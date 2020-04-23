@@ -1,4 +1,5 @@
 import React from 'react';
+import InputMask from 'react-input-mask';
 import PropTypes from 'prop-types';
 import { forbidExtraProps, nonNegativeInteger } from 'airbnb-prop-types';
 import { withStyles, withStylesPropTypes } from 'react-with-styles';
@@ -6,15 +7,13 @@ import throttle from 'lodash/throttle';
 import isTouchDevice from 'is-touch-device';
 
 import {
-  KEY_BACKSPACE, KEY_DELETE,
   OPEN_DOWN,
   OPEN_UP,
   FANG_HEIGHT_PX,
   FANG_WIDTH_PX,
   DEFAULT_VERTICAL_SPACING,
   MODIFIER_KEY_NAMES,
-  KEY_ARROW_LEFT,
-  KEY_ARROW_RIGHT,
+  KEY_TAB,
 } from '../constants';
 import noflip from '../utils/noflip';
 import getInputHeight from '../utils/getInputHeight';
@@ -156,26 +155,13 @@ class DateInput extends React.PureComponent {
   }
 
   onKeyDown(e) {
-    const { displayValue } = this.props;
-
-    const allowedSymbolsRegex = new RegExp('^[0-9/]$');
-    const allowedSpecialKeys = [KEY_BACKSPACE, KEY_DELETE, KEY_ARROW_RIGHT, KEY_ARROW_LEFT];
-    const isKeyAllowed = allowedSymbolsRegex.test(e.key);
-    const isSpecialKeyAllowed = allowedSpecialKeys.includes(e.keyCode);
-
-    e.stopPropagation();
-
-    if (isKeyAllowed === false && isSpecialKeyAllowed === false) {
+    if (e.keyCode === KEY_TAB) {
       e.preventDefault();
       return false;
     }
 
     if (!MODIFIER_KEY_NAMES.has(e.key)) {
       this.throttledKeyDown(e);
-    }
-
-    if (displayValue) {
-      this.setState({ forceChange: true });
     }
   }
 
@@ -240,6 +226,15 @@ class DateInput extends React.PureComponent {
 
     const inputHeight = getInputHeight(reactDates, small);
 
+    const formatChars = {
+      9: '[0-9]',
+      1: '[0-1]', // M
+      2: '[1-2]', // Y: 1900, 2000
+      3: '[0-3]', // D
+      a: '[A-Za-z]',
+      '*': '[A-Za-z0-9]',
+    };
+
     return (
       <div
         {...css(
@@ -252,32 +247,40 @@ class DateInput extends React.PureComponent {
           withFang && openDirection === OPEN_UP && styles.DateInput__openUp,
         )}
       >
-        <input
-          {...css(
-            styles.DateInput_input,
-            small && styles.DateInput_input__small,
-            regular && styles.DateInput_input__regular,
-            readOnly && styles.DateInput_input__readOnly,
-            focused && styles.DateInput_input__focused,
-            disabled && styles.DateInput_input__disabled,
-            value && 'not_empty_input',
-          )}
-          aria-label={ariaLabel === undefined ? placeholder : ariaLabel}
-          type="text"
-          id={id}
-          name={id}
-          ref={this.setInputRef}
-          value={value}
+        <InputMask
+          mask="19/39/2999"
+          formatChars={formatChars}
           onChange={this.onChange}
-          onKeyDown={this.onKeyDown}
           onFocus={onFocus}
-          placeholder={placeholder}
-          autoComplete="off"
+          onKeyDown={this.onKeyDown}
+          value={value}
           disabled={disabled}
           readOnly={typeof readOnly === 'boolean' ? readOnly : isTouch}
-          required={required}
-          aria-describedby={screenReaderMessage && screenReaderMessageId}
-        />
+        >
+          {(inputProps) => (
+            <input
+              {...css(
+                styles.DateInput_input,
+                small && styles.DateInput_input__small,
+                regular && styles.DateInput_input__regular,
+                readOnly && styles.DateInput_input__readOnly,
+                focused && styles.DateInput_input__focused,
+                disabled && styles.DateInput_input__disabled,
+                value && 'not_empty_input',
+              )}
+              {...inputProps}
+              aria-label={ariaLabel === undefined ? placeholder : ariaLabel}
+              type="text"
+              id={id}
+              name={id}
+              ref={this.setInputRef}
+              placeholder={placeholder}
+              autoComplete="off"
+              required={required}
+              aria-describedby={screenReaderMessage && screenReaderMessageId}
+            />
+          )}
+        </InputMask>
 
         {withFang && (
           <svg

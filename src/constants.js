@@ -35,5 +35,6 @@ export const MODIFIER_KEY_NAMES = new Set(['Shift', 'Control', 'Alt', 'Meta']);
 
 export const KEY_BACKSPACE = 46;
 export const KEY_DELETE = 8;
+export const KEY_TAB = 9;
 export const KEY_ARROW_LEFT = 37;
 export const KEY_ARROW_RIGHT = 39;
